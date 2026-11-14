@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Dashboard — SMSBomb API</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: ui-sans-serif, system-ui, sans-serif; padding: 26px 16px 90px;
+    background: radial-gradient(1000px 500px at 25% -10%, #16243a, #07080c 60%);
+    color: #e9edf5;
+  }
+  .wrap { max-width: 660px; margin: 0 auto; }
+  h1 { font-size: 23px; margin: 0 0 4px; letter-spacing: -0.02em; }
+  a.back { color: #4da3ff; font-size: 12px; text-decoration: none; }
+  label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: #7b8698; margin: 20px 0 7px; }
+  input, select { background: #0e141c; border: 1px solid #232d3b; color: #e9edf5; border-radius: 10px; padding: 12px 14px; font-size: 15px; outline: none; }
+  input:focus, select:focus { border-color: #4da3ff; }
+  .row { display: flex; gap: 8px; }
+  .row input { flex: 1; }
+  .full { width: 100%; }
+  .stats { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+  .stat { flex: 1; min-width: 110px; border: 1px solid #212a37; background: #0c1118; border-radius: 10px; padding: 11px 13px; }
+  .stat b { display: block; font-size: 17px; }
+  .stat span { font-size: 11px; color: #7b8698; text-transform: uppercase; letter-spacing: .08em; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; max-height: 170px; overflow: auto; }
+  .chip { font-size: 12px; padding: 6px 11px; border-radius: 999px; cursor: pointer; background: #0e141c; border: 1px solid #232d3b; color: #8e99ab; user-select: none; }
+  .chip.on { background: #12305a; border-color: #2f6fb8; color: #cfe4ff; }
+  .chip.dead { opacity: .38; text-decoration: line-through; }
+  .mini { background: none; border: none; color: #4da3ff; font-size: 12px; cursor: pointer; padding: 0 6px; }
+  #go { width: 100%; margin-top: 22px; padding: 15px; border: none; border-radius: 12px; cursor: pointer; background: linear-gradient(135deg, #4da3ff, #2f6fb8); color: #04121f; font-weight: 800; letter-spacing: .1em; }
+  #go:disabled { opacity: .5; }
+  pre { margin-top: 16px; background: #080c11; border: 1px solid #1b2230; border-radius: 12px; padding: 14px; font-size: 12px; line-height: 1.65; max-height: 400px; overflow: auto; white-space: pre-wrap; }
+  .ok { color: #55d68a; } .bad { color: #ff6b6b; } .dim { color: #5c6779; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="/">← home</a>
+  <h1>Dashboard</h1>
+
+  <label>API key</label>
+  <div class="row">
+    <input id="key" type="text" placeholder="sb_live_..." />
+    <button class="mini" id="save">save</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><b id="s-plan">—</b><span>plan</span></div>
+    <div class="stat"><b id="s-used">—</b><span>used today</span></div>
+    <div class="stat"><b id="s-left">—</b><span>left today</span></div>
+    <div class="stat"><b id="s-exp">—</b><span>expires</span></div>
+  </div>
+
+  <label>Target number</label>
+  <div class="row">
+    <select id="cc" style="width:100px">
+      <option value="91">+91</option><option value="92">+92</option>
+      <option value="971">+971</option><option value="1">+1</option>
+      <option value="44">+44</option><option value="880">+880</option>
+    </select>
+    <input id="num" type="text" inputmode="numeric" placeholder="9876543210" />
+  </div>
+
+  <label>Rounds — <b id="cntv">1</b></label>
+  <input type="range" id="count" min="1" max="5" value="1" class="full" />
+
+  <label>Services <button class="mini" id="all">all</button><button class="mini" id="none">none</button></label>
+  <div class="chips" id="chips"></div>
+
+  <button id="go">BOMB</button>
+  <pre id="log" class="dim">key daal ke save kar…</pre>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const log = (cls, t) => {
+  const d = document.createElement("div");
+  d.className = cls; d.textContent = t;
+  $("log").appendChild(d); $("log").scrollTop = 1e9;
+};
+
+const keyEl = $("key");
+keyEl.value = localStorage.getItem("sb_key") || "";
+$("num").value = localStorage.getItem("sb_num") || "";
+
+$("save").onclick = () => { localStorage.setItem("sb_key", keyEl.value.trim()); loadMe(); };
+
+async function loadMe() {
+  const k = localStorage.getItem("sb_key");
+  if (!k) return;
+  try {
+    const r = await fetch("/api/v1/me?key=" + encodeURIComponent(k));
+    const d = await r.json();
+    if (!d.ok) { $("s-plan").textContent = "invalid"; return; }
+    $("s-plan").textContent = d.plan;
+    $("s-used").textContent = d.quota.used;
+    $("s-left").textContent = d.quota.remaining;
+    $("s-exp").textContent = d.lifetime ? "never" : new Date(d.expires).toLocaleDateString();
+  } catch {}
+}
+loadMe();
+
+let services = [];
+fetch("/api/v1/services").then(r => r.json()).then(d => {
+  services = d.services || [];
+  const box = $("chips");
+  services.forEach(s => {
+    const el = document.createElement("span");
+    el.className = "chip on" + (s.live ? "" : " dead");
+    el.textContent = s.name; el.dataset.name = s.name;
+    el.onclick = () => el.classList.toggle("on");
+    box.appendChild(el);
+  });
+}).catch(() => log("bad", "services load nahi hui"));
+
+$("all").onclick = () => document.querySelectorAll(".chip:not(.dead)").forEach(c => c.classList.add("on"));
+$("none").onclick = () => document.querySelectorAll(".chip").forEach(c => c.classList.remove("on"));
+$("count").oninput = (e) => ($("cntv").textContent = e.target.value);
+
+$("go").onclick = async () => {
+  const k = localStorage.getItem("sb_key");
+  if (!k) return log("bad", "pehle key save kar");
+  const num = $("num").value.replace(/\D/g, "");
+  if (num.length < 6) return log("bad", "valid number daal");
+  localStorage.setItem("sb_num", num);
+
+  const picked = [...document.querySelectorAll(".chip.on")].map(c => c.dataset.name);
+  if (!picked.length) return log("bad", "kam se kam ek service select kar");
+
+  $("go").disabled = true;
+  $("log").innerHTML = "";
+  log("dim", `blast +${$("cc").value}${num} × ${$("count").value} × ${picked.length}`);
+
+  try {
+    const q = new URLSearchParams({ key: k, number: num, cc: $("cc").value, count: $("count").value, services: picked.join(",") });
+    const r = await fetch("/api/v1/bomb?" + q);
+    const d = await r.json();
+    if (!d.ok) { log("bad", d.error || "fail"); return; }
+    for (const round of d.detail || []) {
+      if (round.skipped) { log("dim", `round ${round.round} skip`); continue; }
+      for (const x of round.results) {
+        log(x.ok ? "ok" : "bad", `r${round.round} ${x.ok ? "OK" : "FAIL"} ${x.service} [${x.status}] ${x.ms}ms`);
+      }
+    }
+    log("dim", "──────────");
+    log("dim", `accepted ${d.accepted}/${d.requested} — quota ${d.quota.used}/${d.quota.limit}`);
+    loadMe();
+  } catch (e) {
+    log("bad", e.message);
+  } finally {
+    $("go").disabled = false;
+  }
+};
+</script>
+</body>
+</html>
