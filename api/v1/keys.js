@@ -1,61 +1,69 @@
-import { getJSON, setJSON, incr, expire } from "../../lib/redis.js";
+import { getJSON, setJSON } from "../../lib/redis.js";
 import { mintKey, PLANS } from "../../lib/auth.js";
 import { randomBytes } from "node:crypto";
 
-export default async function handler(req, res) {
-  res.setHeader("access-control-allow-origin", "*");
-  res.setHeader("content-type", "application/json; charset=utf-8");
+const CORS = {
+  "access-control-allow-origin": "*",
+  "access-control-allow-methods": "POST,OPTIONS",
+  "access-control-allow-headers": "content-type",
+};
 
+function reply(res, code, payload) {
+  res.statusCode = code;
+  res.setHeader("content-type", "application/json; charset=utf-8");
+  res.setHeader("cache-control", "no-store");
+  for (const k in CORS) res.setHeader(k, CORS[k]);
+  res.end(JSON.stringify(payload, null, 2));
+}
+
+export default async function handler(req, res) {
+  if (req.method === "OPTIONS") {
+    res.statusCode = 204;
+    for (const k in CORS) res.setHeader(k, CORS[k]);
+    return res.end();
+  }
   if (req.method !== "POST") {
-    res.statusCode = 405;
-    return res.end(JSON.stringify({ ok: false, error: "POST only", plans: Object.keys(PLANS) }));
+    return reply(res, 405, { ok: false, error: "POST only", plans: Object.keys(PLANS) });
   }
 
   let body = req.body;
   if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
   body = body || {};
 
+  const plan = String(body.plan || "free").toLowerCase();
   const email = String(body.email || "").trim().toLowerCase();
-  const plan = String(body.plan || "trial").toLowerCase();
+
+  if (!PLANS[plan]) return reply(res, 400, { ok: false, error: "unknown plan", plans: Object.keys(PLANS) });
+
+  // free: koi email nahi chahiye, seedha key
+  if (plan === "free") {
+    const { key, rec } = await mintKey({ plan });
+    return reply(res, 200, {
+      ok: true, key, plan,
+      expires: rec.expires,
+      daily: rec.daily,
+      note: "30 din / 100 calls per din. Key sambhal ke rakho.",
+    });
+  }
 
   if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(email)) {
-    res.statusCode = 400;
-    return res.end(JSON.stringify({ ok: false, error: "valid email chahiye" }));
-  }
-  if (!PLANS[plan]) {
-    res.statusCode = 400;
-    return res.end(JSON.stringify({ ok: false, error: "unknown plan", plans: Object.keys(PLANS) }));
+    return reply(res, 400, { ok: false, error: "is plan ke liye valid email chahiye" });
   }
 
-  // trial: ek email pe sirf ek baar
   if (plan === "trial") {
-    const seen = await getJSON(`trial:${email}`);
-    if (seen) {
-      res.statusCode = 429;
-      return res.end(JSON.stringify({ ok: false, error: "is email pe trial already le liya hai" }));
+    if (await getJSON(`trial:${email}`)) {
+      return reply(res, 429, { ok: false, error: "is email pe trial already le liya hai — free key lo" });
     }
     await setJSON(`trial:${email}`, { at: Date.now() });
     const { key, rec } = await mintKey({ plan, email });
-    return res.end(JSON.stringify({
-      ok: true,
-      key,
-      plan,
-      expires: rec.expires,
-      daily: rec.daily,
-      note: "24 ghante ke liye valid. Dashboard pe key daal ke chalao.",
-    }));
+    return reply(res, 200, { ok: true, key, plan, expires: rec.expires, daily: rec.daily });
   }
 
-  // paid plans: pending request
+  // paid plans: sirf pending request. paisa site pe nahi, Telegram pe.
   const ref = "req_" + randomBytes(6).toString("hex");
   await setJSON(`pending:${ref}`, { ref, email, plan, at: Date.now() });
-  await incr(`pendingcount`).then(() => expire("pendingcount", 86400 * 30)).catch(() => {});
-  res.end(JSON.stringify({
-    ok: true,
-    status: "pending",
-    ref,
-    plan,
-    price: PLANS[plan].price,
-    note: "Payment ke baad admin approve karega. Apna ref id sambhal ke rakho.",
-  }));
+  return reply(res, 200, {
+    ok: true, status: "pending", ref, plan,
+    note: "ref id sambhalo. Telegram pe ref bhejo.",
+  });
 }
