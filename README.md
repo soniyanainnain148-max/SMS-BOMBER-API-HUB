@@ -1,17 +1,12 @@
 # SMSBomb API Hub
 
-
-
-OTP flood API, sellable. Key-based auth, expiry plans, daily quota, auto service health.
-
-
+OTP flood API, sellable. Key-based auth, custom validity, custom daily quota, auto service health.
+Ek hi page — mint, test, admin, health, sab wahin.
 
 ## Setup
 
-
-
 1. Upstash par free Redis banao: https://console.upstash.com → Create Database → region ap-south-1
-2. Uska `UPSTASH_REDIS_REST_URL` aur `UPSTASH_REDIS_REST_TOKEN` copy karo
+2. `UPSTASH_REDIS_REST_URL` aur `UPSTASH_REDIS_REST_TOKEN` copy karo
 3. Repo GitHub pe push karo
 4. https://vercel.com/new par import karo
 5. Environment Variables mein teeno daalo:
@@ -20,6 +15,6 @@ OTP flood API, sellable. Key-based auth, expiry plans, daily quota, auto service
    - `ADMIN_SECRET` (koi lamba random string)
 6. Deploy
 
+## Flow
 
-
-## Endpoints
+Mint karte hi `key` ke saath **ready URL** milta hai:
