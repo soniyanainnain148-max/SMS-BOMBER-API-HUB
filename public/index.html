@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SMSBomb API — OTP flood API</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+    background: radial-gradient(1100px 500px at 15% -10%, #17253c, #07080c 55%);
+    color: #e9edf5; padding: 0 18px 90px;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; }
+  header { display: flex; justify-content: space-between; align-items: center; padding: 26px 0; }
+  .logo { font-weight: 800; letter-spacing: -0.02em; font-size: 19px; }
+  .logo span { color: #4da3ff; }
+  nav a { color: #94a1b5; text-decoration: none; font-size: 13px; margin-left: 18px; }
+  nav a:hover { color: #fff; }
+  h1 { font-size: clamp(30px, 5vw, 50px); line-height: 1.05; letter-spacing: -0.03em; margin: 40px 0 14px; }
+  h1 em { color: #4da3ff; font-style: normal; }
+  .lead { color: #94a1b5; font-size: 16px; max-width: 560px; line-height: 1.65; }
+  .btns { margin: 26px 0 10px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn {
+    padding: 14px 24px; border-radius: 11px; font-weight: 700; font-size: 14px;
+    text-decoration: none; border: 1px solid transparent; cursor: pointer;
+  }
+  .btn.p { background: linear-gradient(135deg, #4da3ff, #2f6fb8); color: #04121f; }
+  .btn.s { border-color: #26303f; color: #dbe3ef; background: #10151d; }
+  .truth { margin-top: 34px; border: 1px solid #2a3444; background: #0d1219; border-radius: 14px; padding: 18px 20px; }
+  .truth h3 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .1em; color: #4da3ff; }
+  .truth ul { margin: 0; padding-left: 18px; color: #97a3b6; font-size: 14px; line-height: 1.8; }
+  h2 { font-size: 24px; letter-spacing: -0.02em; margin: 60px 0 18px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+  .card { border: 1px solid #222b39; background: #0c1118; border-radius: 14px; padding: 20px; }
+  .card.hi { border-color: #2f6fb8; background: #0d1a2b; }
+  .card h4 { margin: 0 0 4px; font-size: 15px; }
+  .price { font-size: 27px; font-weight: 800; letter-spacing: -0.02em; margin: 8px 0; }
+  .price small { font-size: 12px; font-weight: 500; color: #7f8b9e; }
+  .card ul { margin: 12px 0 16px; padding-left: 16px; color: #8f9cb0; font-size: 13px; line-height: 1.8; }
+  .card button { width: 100%; padding: 11px; border-radius: 9px; border: 1px solid #2c3murmur; }
+  .card button { width: 100%; padding: 11px; border-radius: 9px; border: 1px solid #2c3murmur; background: #16202d; color: #dce5f2; cursor: pointer; font-weight: 600; }
+  .card.hi button { background: #2f6fb8; border-color: #2f6fb8; color: #fff; }
+  pre, code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  pre { background: #080c11; border: 1px solid #1c2431; border-radius: 12px; padding: 16px; overflow: auto; font-size: 12.5px; line-height: 1.7; color: #b9c6d8; }
+  .kw { color: #7cc6ff; } .str { color: #8fe3a8; } .cm { color: #5b6779; }
+  form { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
+  input, select {
+    background: #0e141c; border: 1px solid #232d3b; color: #e9edf5;
+    border-radius: 10px; padding: 13px 14px; font-size: 15px; outline: none;
+  }
+  input:focus, select:focus { border-color: #4da3ff; }
+  #out { white-space: pre-wrap; font-size: 13px; color: #8fe3a8; }
+  footer { margin-top: 70px; color: #5f6b7d; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">SMS<span>BOMB</span> API</div>
+    <nav><a href="#pricing">Pricing</a><a href="#docs">Docs</a><a href="/dashboard.html">Dashboard</a></nav>
+  </header>
+
+  <h1>Ek API call. <em>Poore OTP gateways.</em></h1>
+  <p class="lead">
+    34 live OTP endpoints ek saath hit hote hain. Ek simple HTTP request se kisi bhi number par SMS flood.
+    Key le, endpoint call kar, ho gaya.
+  </p>
+  <div class="btns">
+    <a class="btn p" href="#getkey">Free trial key lo</a>
+    <a class="btn s" href="/dashboard.html">Dashboard kholo</a>
+  </div>
+
+  <div class="truth">
+    <h3>Honest reality check</h3>
+    <ul>
+      <li>Typical result: <strong>10–25 SMS</strong> per blast. 100 nahi.</li>
+      <li>Har SMS delivery guaranteed nahi — kuch gateways silent fail karte hain.</li>
+      <li>Jo service lagataar fail hoti hai wo auto-disable ho jaati hai, 1 ghante baad wapas aati hai.</li>
+      <li>Live health status: <code>/api/v1/health</code></li>
+    </ul>
+  </div>
+
+  <h2 id="pricing">Pricing</h2>
+  <div class="grid">
+    <div class="card">
+      <h4>Trial</h4>
+      <div class="price">Free</div>
+      <ul><li>24 ghante</li><li>20 blasts / din</li><li>Sab services</li></ul>
+      <button data-plan="trial">Le lo</button>
+    </div>
+    <div class="card">
+      <h4>Weekly</h4>
+      <div class="price">₹99 <small>/ 7 din</small></div>
+      <ul><li>7 din validity</li><li>100 blasts / din</li><li>Priority queue</li></ul>
+      <button data-plan="weekly">Kharido</button>
+    </div>
+    <div class="card hi">
+      <h4>Monthly</h4>
+      <div class="price">₹249 <small>/ 30 din</small></div>
+      <ul><li>30 din validity</li><li>300 blasts / din</li><li>Priority queue</li></ul>
+      <button data-plan="monthly">Kharido</button>
+    </div>
+    <div class="card">
+      <h4>Lifetime</h4>
+      <div class="price">₹999 <small>ek baar</small></div>
+      <ul><li>Kabhi expire nahi</li><li>1000 blasts / din</li><li>Priority queue</li></ul>
+      <button data-plan="lifetime">Kharido</button>
+    </div>
+  </div>
+
+  <h2 id="getkey">Key lo</h2>
+  <p class="lead" style="font-size:14px">
+    Trial turant milti hai. Paid plan ke liye request jayegi — payment ke baad admin approve karega.
+  </p>
+  <form id="keyform">
+    <input id="email" type="email" placeholder="tumhara@email.com" required />
+    <select id="plan">
+      <option value="trial">Trial — Free</option>
+      <option value="weekly">Weekly — ₹99</option>
+      <option value="monthly">Monthly — ₹249</option>
+      <option value="lifetime">Lifetime — ₹999</option>
+    </select>
+    <button class="btn p" type="submit">Generate</button>
+  </form>
+  <pre id="out" hidden></pre>
+
+  <h2 id="docs">Docs</h2>
+  <pre><span class="cm"># blast</span>
+<span class="kw">GET</span> /api/v1/bomb?key=YOUR_KEY&number=9876543210&count=1
+
+<span class="cm"># response</span>
+{
+  <span class="str">"ok"</span>: true,
+  <span class="str">"target"</span>: <span class="str">"+919876543210"</span>,
+  <span class="str">"services"</span>: 34,
+  <span class="str">"accepted"</span>: 19,
+  <span class="str">"failed"</span>: 15,
+  <span class="str">"quota"</span>: { <span class="str">"used"</span>: 1, <span class="str">"limit"</span>: 20, <span class="str">"remaining"</span>: 19 }
+}</pre>
+
+  <p class="lead" style="font-size:14px">Parameters:</p>
+  <pre><span class="kw">key</span>       required   api key
+<span class="kw">number</span>    required   10 digit number
+<span class="kw">cc</span>        optional   country code, default 91
+<span class="kw">count</span>     optional   rounds 1-5, default 1
+<span class="kw">services</span>  optional   comma list, default all</pre>
+
+  <p class="lead" style="font-size:14px">Aur endpoints:</p>
+  <pre><span class="kw">GET</span> /api/v1/services   — live service list
+<span class="kw">GET</span> /api/v1/health     — gateway health
+<span class="kw">GET</span> /api/v1/me?key=     — apna quota dekho</pre>
+
+  <footer>SMSBOMB API — endpoints third-party gateways ke hain, unke change hone par list update hoti rehti hai.</footer>
+</div>
+
+<script>
+const out = document.getElementById("out");
+document.getElementById("keyform").onsubmit = async (e) => {
+  e.preventDefault();
+  const email = document.getElementById("email").value.trim();
+  const plan = document.getElementById("plan").value;
+  out.hidden = false;
+  out.textContent = "…";
+  try {
+    const r = await fetch("/api/v1/keys", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email, plan }),
+    });
+    const d = await r.json();
+    if (d.ok && d.key) {
+      localStorage.setItem("sb_key", d.key);
+      out.textContent = "KEY: " + d.key + "\n\n" + d.note + "\n\nDashboard pe already save ho gayi hai.";
+    } else if (d.ok && d.status === "pending") {
+      out.textContent = "Request bhej di gayi.\nRef: " + d.ref + "\nPlan: " + d.plan + " (₹" + d.price + ")\n\n" + d.note;
+    } else {
+      out.textContent = "Error: " + (d.error || "kuch galat");
+    }
+  } catch (err) {
+    out.textContent = "Network error: " + err.message;
+  }
+};
+document.querySelectorAll("[data-plan]").forEach((b) => {
+  b.onclick = () => {
+    document.getElementById("plan").value = b.dataset.plan;
+    document.getElementById("getkey").scrollIntoView({ behavior: "smooth" });
+  };
+});
+</script>
+</body>
+  </html>
