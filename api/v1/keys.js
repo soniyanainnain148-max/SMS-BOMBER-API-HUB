@@ -1,4 +1,5 @@
 import { mintKey, DURATIONS } from "../../lib/auth.js";
+import { buildLinks } from "../../lib/links.js";
 
 const CORS = {
   "access-control-allow-origin": "*",
@@ -28,21 +29,27 @@ export default async function handler(req, res) {
   if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
   body = body || {};
 
-  const plan = String(body.plan || "1d").toLowerCase();
-  if (!DURATIONS[plan]) {
-    return reply(res, 400, { ok: false, error: "unknown duration", durations: Object.keys(DURATIONS) });
-  }
+  const { key, rec, term } = await mintKey({
+    plan: body.plan,
+    hours: body.hours,
+    daily: body.daily,
+    name: body.name,
+  });
 
-  const { key, rec } = await mintKey({ plan, name: body.name });
+  const links = buildLinks(req, key, { number: body.number, count: body.count || 1 });
 
   return reply(res, 200, {
     ok: true,
     key,
     name: rec.name,
-    plan,
-    label: DURATIONS[plan].label,
+    plan: term.plan,
+    label: term.label,
+    hours: term.hours,
+    daily: term.daily,
     expires: rec.expires,
-    daily: rec.daily,
-    note: `key ${DURATIONS[plan].label} ke liye valid hai, phir khud expire ho jayegi.`,
+    url: links.url,
+    endpoint: links.endpoint,
+    me: links.me,
+    note: "url me key already lagi hai — browser me seedha kholo.",
   });
 }
