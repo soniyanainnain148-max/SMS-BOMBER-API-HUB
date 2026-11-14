@@ -7,18 +7,27 @@ export const config = { maxDuration: 30 };
 
 const LOCK_SEC = 45;
 
-// status + body dono dekh ke honest bucket. "sent" ka bhi matlab delivery nahi.
+// status + body dono. HTML page = koi proof nahi. Negative keyword pehle check.
 function bucket(r) {
   const s = r.status;
-  const body = String(r.note || "").toLowerCase();
+  const body = String(r.note || "").trim();
+  const low = body.toLowerCase();
+
   if (s === 0) return "down";
-  if (s === 401 || s === 403 || s === 429) return "blocked";
+  if (s === 401) return "auth";
+  if (s === 403 || s === 429) return "blocked";
   if (s === 404 || s === 405 || s === 410) return "gone";
   if (s >= 500) return "down";
   if (s >= 400) return "badreq";
-  if (s === 202) return "soft";
-  if (/invalid|not valid|already|exist|captcha|cloudflare|robot|verify/.test(body)) return "soft";
-  return "sent";
+
+  if (!body) return "unknown";
+  if (low.startsWith("<!doctype") || low.startsWith("<html") || low.includes("<script")) return "page";
+
+  if (/"error"\s*:\s*(1|true)|"iserror"\s*:\s*true|"status"\s*:\s*4\d\d|"code"\s*:\s*"0\d"|failed|invalid|captcha|timeout|already|not valid|"exists?"\s*:\s*true/.test(low)) {
+    return "failed";
+  }
+  if (/otp|sent|success|"statuscode"\s*:\s*"1"|generated/.test(low)) return "sent";
+  return "unknown";
 }
 
 function reply(res, code, payload) {
@@ -74,7 +83,8 @@ export default async function handler(req, res) {
 
   const count = (k) => results.filter((r) => r.kind === k).length;
   const summary = {
-    sent: count("sent"), soft: count("soft"), blocked: count("blocked"),
+    sent: count("sent"), failed: count("failed"), page: count("page"),
+    unknown: count("unknown"), auth: count("auth"), blocked: count("blocked"),
     badreq: count("badreq"), gone: count("gone"), down: count("down"),
   };
 
@@ -83,9 +93,9 @@ export default async function handler(req, res) {
     testedWith: test,
     total: results.length,
     summary,
-    deliveredLikely: summary.sent,
+    confirmed: results.filter((r) => r.kind === "sent").map((r) => r.service),
     passRate: Math.round((summary.sent / results.length) * 100) + "%",
-    note: `${summary.sent}/${results.length} ne request li — delivery guarantee nahi. blocked = IP block (proxy chahiye), down = dead/timeout, soft = 2xx par body me error.`,
+    note: `${summary.sent}/${results.length} ne OTP ka proof diya. page = HTML page aaya, proof nahi. auth = token chahiye. blocked = IP block. failed = body me error.`,
     results: results.sort((a, b) => a.service.localeCompare(b.service)),
   });
 }
