@@ -1,4 +1,4 @@
-import { del, scanKeys, srem } from "../../lib/redis.js";
+import { del, scanKeys } from "../../lib/redis.js";
 
 export default async function handler(req, res) {
   res.setHeader("content-type", "application/json; charset=utf-8");
@@ -7,8 +7,17 @@ export default async function handler(req, res) {
     res.statusCode = 401;
     return res.end(JSON.stringify({ ok: false, error: "bad secret" }));
   }
-  const fails = await scanKeys("fail:*");
-  for (const k of fails) await del(k).catch(() => {});
+
+  let cleared = 0;
+  for (const pat of ["fail:*", "hfail:*"]) {
+    for (const k of await scanKeys(pat)) { await del(k).catch(() => {}); cleared++; }
+  }
   await del("svc:disabled").catch(() => {});
-  res.end(JSON.stringify({ ok: true, cleared: fails.length + 1 }));
+  await del("health:lock").catch(() => {});
+
+  if (url.searchParams.get("usage") === "1") {
+    for (const k of await scanKeys("rl:*")) { await del(k).catch(() => {}); cleared++; }
+  }
+
+  res.end(JSON.stringify({ ok: true, cleared: cleared + 2 }));
 }
