@@ -1,193 +1,274 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>SMSBomb API — OTP flood API</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arpit — OTP API</title>
+<meta name="description" content="Arpit ka personal OTP API. 43 services, ek call.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  :root { color-scheme: dark; }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
-    background: radial-gradient(1100px 500px at 15% -10%, #17253c, #07080c 55%);
-    color: #e9edf5; padding: 0 18px 90px;
+  :root{
+    --bg:#0a0a0b; --panel:#111113; --line:#1f1f23; --line2:#2a2a30;
+    --fg:#e9e7e2; --dim:#8b8b93; --accent:#c9f560; --bad:#ff6b5e; --warn:#ffb545;
   }
-  .wrap { max-width: 940px; margin: 0 auto; }
-  header { display: flex; justify-content: space-between; align-items: center; padding: 26px 0; }
-  .logo { font-weight: 800; letter-spacing: -0.02em; font-size: 19px; }
-  .logo span { color: #4da3ff; }
-  nav a { color: #94a1b5; text-decoration: none; font-size: 13px; margin-left: 18px; }
-  nav a:hover { color: #fff; }
-  h1 { font-size: clamp(30px, 5vw, 50px); line-height: 1.05; letter-spacing: -0.03em; margin: 40px 0 14px; }
-  h1 em { color: #4da3ff; font-style: normal; }
-  .lead { color: #94a1b5; font-size: 16px; max-width: 560px; line-height: 1.65; }
-  .btns { margin: 26px 0 10px; display: flex; gap: 12px; flex-wrap: wrap; }
-  .btn {
-    padding: 14px 24px; border-radius: 11px; font-weight: 700; font-size: 14px;
-    text-decoration: none; border: 1px solid transparent; cursor: pointer;
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--bg); color:var(--fg);
+    font-family:Inter,system-ui,sans-serif; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
   }
-  .btn.p { background: linear-gradient(135deg, #4da3ff, #2f6fb8); color: #04121f; }
-  .btn.s { border-color: #26303f; color: #dbe3ef; background: #10151d; }
-  .truth { margin-top: 34px; border: 1px solid #2a3444; background: #0d1219; border-radius: 14px; padding: 18px 20px; }
-  .truth h3 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .1em; color: #4da3ff; }
-  .truth ul { margin: 0; padding-left: 18px; color: #97a3b6; font-size: 14px; line-height: 1.8; }
-  h2 { font-size: 24px; letter-spacing: -0.02em; margin: 60px 0 18px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
-  .card { border: 1px solid #222b39; background: #0c1118; border-radius: 14px; padding: 20px; }
-  .card.hi { border-color: #2f6fb8; background: #0d1a2b; }
-  .card h4 { margin: 0 0 4px; font-size: 15px; }
-  .price { font-size: 27px; font-weight: 800; letter-spacing: -0.02em; margin: 8px 0; }
-  .price small { font-size: 12px; font-weight: 500; color: #7f8b9e; }
-  .card ul { margin: 12px 0 16px; padding-left: 16px; color: #8f9cb0; font-size: 13px; line-height: 1.8; }
-  .card button { width: 100%; padding: 11px; border-radius: 9px; border: 1px solid #2c3murmur; }
-  .card button { width: 100%; padding: 11px; border-radius: 9px; border: 1px solid #2c3murmur; background: #16202d; color: #dce5f2; cursor: pointer; font-weight: 600; }
-  .card.hi button { background: #2f6fb8; border-color: #2f6fb8; color: #fff; }
-  pre, code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-  pre { background: #080c11; border: 1px solid #1c2431; border-radius: 12px; padding: 16px; overflow: auto; font-size: 12.5px; line-height: 1.7; color: #b9c6d8; }
-  .kw { color: #7cc6ff; } .str { color: #8fe3a8; } .cm { color: #5b6779; }
-  form { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
-  input, select {
-    background: #0e141c; border: 1px solid #232d3b; color: #e9edf5;
-    border-radius: 10px; padding: 13px 14px; font-size: 15px; outline: none;
+  .mono{font-family:'JetBrains Mono',monospace}
+  .wrap{max-width:880px;margin:0 auto;padding:0 20px}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+  header{border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(10,10,11,.92);backdrop-filter:blur(8px);z-index:9}
+  header .wrap{display:flex;align-items:center;justify-content:space-between;height:58px}
+  .brand{display:flex;align-items:baseline;gap:8px;font-weight:700;letter-spacing:-.02em}
+  .brand .tag{font-size:11px;color:var(--dim);font-weight:400;letter-spacing:.08em}
+  nav{display:flex;gap:18px;font-size:13px}
+  nav a{color:var(--dim)}
+  nav a:hover{color:var(--fg);text-decoration:none}
+  .hero{padding:64px 0 40px}
+  .kicker{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin-bottom:18px}
+  h1{font-size:clamp(32px,6vw,52px);line-height:1.05;letter-spacing:-.035em;margin:0 0 18px;font-weight:700}
+  h1 .soft{color:var(--dim)}
+  .lede{font-size:16px;color:var(--dim);max-width:56ch;margin:0 0 28px}
+  .lede b{color:var(--fg);font-weight:500}
+  .strip{display:flex;flex-wrap:wrap;gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:8px}
+  .strip div{flex:1;min-width:110px;padding:14px 16px;border-right:1px solid var(--line)}
+  .strip div:last-child{border-right:0}
+  .strip .n{font-size:20px;font-weight:700;letter-spacing:-.02em}
+  .strip .l{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.1em}
+  section{padding:56px 0;border-top:1px solid var(--line)}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:.14em;color:var(--dim);margin:0 0 22px;font-weight:500}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px}
+  label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin-bottom:7px}
+  input,select{
+    width:100%;background:#08080a;border:1px solid var(--line2);color:var(--fg);
+    border-radius:8px;padding:11px 12px;font-size:14px;font-family:'JetBrains Mono',monospace;
   }
-  input:focus, select:focus { border-color: #4da3ff; }
-  #out { white-space: pre-wrap; font-size: 13px; color: #8fe3a8; }
-  footer { margin-top: 70px; color: #5f6b7d; font-size: 12px; }
+  input:focus,select:focus{outline:none;border-color:var(--accent)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .row{display:grid;grid-template-columns:1fr 90px 110px;gap:12px;margin-bottom:14px}
+  @media(max-width:620px){.row,.grid2{grid-template-columns:1fr}}
+  button{
+    background:var(--accent);color:#0a0a0b;border:0;border-radius:8px;
+    padding:12px 20px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;
+  }
+  button:hover{filter:brightness(1.08)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  button.ghost{background:transparent;color:var(--fg);border:1px solid var(--line2);font-weight:500}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 16px;max-height:120px;overflow:auto}
+  .chip{
+    font-size:11px;font-family:'JetBrains Mono',monospace;padding:4px 9px;
+    border:1px solid var(--line2);border-radius:99px;color:var(--dim);cursor:pointer;user-select:none;
+  }
+  .chip[data-on="1"]{background:rgba(201,245,96,.12);border-color:var(--accent);color:var(--accent)}
+  .out{margin-top:18px;display:none}
+  .out .head{font-size:12px;color:var(--dim);margin-bottom:10px}
+  .line{display:flex;justify-content:space-between;gap:10px;padding:7px 10px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:12px;background:#0d0d0f;margin-bottom:4px}
+  .line .ok{color:var(--accent)}
+  .line .no{color:var(--bad)}
+  .plans{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  @media(max-width:760px){.plans{grid-template-columns:1fr 1fr}}
+  .plan{border:1px solid var(--line);border-radius:10px;padding:16px}
+  .plan.hot{border-color:var(--accent)}
+  .plan .p{font-size:22px;font-weight:700;margin:6px 0}
+  .plan .u{font-size:12px;color:var(--dim)}
+  .plan .nm{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--accent)}
+  pre{background:#08080a;border:1px solid var(--line);border-radius:10px;padding:16px;overflow:auto;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7;color:#cfcfd6}
+  pre .c{color:#5f5f6b}
+  pre .s{color:var(--accent)}
+  .ep{display:flex;gap:10px;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .ep:last-child{border-bottom:0}
+  .ep .m{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);min-width:46px}
+  .ep code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--fg)}
+  .ep .d{color:var(--dim);font-size:12px;margin-left:auto;text-align:right}
+  footer{padding:40px 0 60px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+  .note{font-size:12px;color:var(--dim);margin-top:12px}
+  .err{color:var(--bad);font-size:12px;margin-top:10px}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="logo">SMS<span>BOMB</span> API</div>
-    <nav><a href="#pricing">Pricing</a><a href="#docs">Docs</a><a href="/dashboard.html">Dashboard</a></nav>
-  </header>
 
-  <h1>Ek API call. <em>Poore OTP gateways.</em></h1>
-  <p class="lead">
-    34 live OTP endpoints ek saath hit hote hain. Ek simple HTTP request se kisi bhi number par SMS flood.
-    Key le, endpoint call kar, ho gaya.
-  </p>
-  <div class="btns">
-    <a class="btn p" href="#getkey">Free trial key lo</a>
-    <a class="btn s" href="/dashboard.html">Dashboard kholo</a>
+<header>
+  <div class="wrap">
+    <div class="brand">ARPIT <span class="tag mono">/ otp-api</span></div>
+    <nav>
+      <a href="#try">try</a>
+      <a href="#pricing">pricing</a>
+      <a href="#docs">docs</a>
+      <a href="/dashboard.html">dashboard</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="hero">
+    <div class="kicker">personal project</div>
+    <h1>Main Arpit hoon.<br><span class="soft">Ye mera OTP API hai.</span></h1>
+    <p class="lede">Ek call pe <b>43 services</b> ko OTP request jati hai. Flipkart, Swiggy, Snapdeal, Urban Company — sab. Koi app nahi, koi login nahi. Bas ek HTTP call.</p>
+    <div class="strip">
+      <div><div class="n">43</div><div class="l">services</div></div>
+      <div><div class="n">~15</div><div class="l">live abhi</div></div>
+      <div><div class="n">1</div><div class="l">call</div></div>
+      <div><div class="n">free</div><div class="l">trial</div></div>
+    </div>
+    <p class="note">Number pe recharge/DND ho to SMS turant aata hai. Sender side daily limit bhi hoti hai — kabhi kabhi 400 milta hai, wo service ki galti nahi.</p>
   </div>
 
-  <div class="truth">
-    <h3>Honest reality check</h3>
-    <ul>
-      <li>Typical result: <strong>10–25 SMS</strong> per blast. 100 nahi.</li>
-      <li>Har SMS delivery guaranteed nahi — kuch gateways silent fail karte hain.</li>
-      <li>Jo service lagataar fail hoti hai wo auto-disable ho jaati hai, 1 ghante baad wapas aati hai.</li>
-      <li>Live health status: <code>/api/v1/health</code></li>
-    </ul>
+  <section id="try">
+    <h2>Chala ke dekho</h2>
+    <div class="panel">
+      <div class="row">
+        <div>
+          <label>API key</label>
+          <input id="key" placeholder="sb_live_..." autocomplete="off">
+        </div>
+        <div>
+          <label>Number</label>
+          <input id="num" placeholder="9876543210" inputmode="numeric">
+        </div>
+        <div>
+          <label>Rounds</label>
+          <select id="count">
+            <option>1</option><option>2</option><option>3</option>
+          </select>
+        </div>
+      </div>
+      <label>services <span id="svcCount" class="mono" style="color:var(--dim)"></span></label>
+      <div class="chips" id="chips"></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button id="fire">Bhejo</button>
+        <button class="ghost" id="all">sab select</button>
+        <button class="ghost" id="none">clear</button>
+        <button class="ghost" id="trial">free trial key lo</button>
+      </div>
+      <div class="err" id="err"></div>
+      <div class="out" id="out">
+        <div class="head mono" id="outHead"></div>
+        <div id="outBody"></div>
+      </div>
+    </div>
+    <p class="note">Trial ke liye email daalo, 24 ghante ki key milegi — 20 calls. Ek email pe ek hi baar.</p>
+  </section>
+
+  <section id="pricing">
+    <h2>Rate</h2>
+    <div class="plans">
+      <div class="plan"><div class="nm">trial</div><div class="p">₹0</div><div class="u">1 din<br>20 calls/din</div></div>
+      <div class="plan"><div class="nm">weekly</div><div class="p">₹99</div><div class="u">7 din<br>100 calls/din</div></div>
+      <div class="plan hot"><div class="nm">monthly</div><div class="p">₹249</div><div class="u">30 din<br>300 calls/din</div></div>
+      <div class="plan"><div class="nm">lifetime</div><div class="p">₹999</div><div class="u">kabhi khatam nahi<br>1000 calls/din</div></div>
+    </div>
+    <p class="note">Payment Telegram pe. Screenshot bhejo, key 10 minute me.</p>
+  </section>
+
+  <section id="docs">
+    <h2>Endpoints</h2>
+    <div class="ep"><span class="m">POST</span><code>/api/v1/bomb</code><span class="d">?key= &amp; number= &amp; count= &amp; services=</span></div>
+    <div class="ep"><span class="m">GET</span><code>/api/v1/me</code><span class="d">quota dekho</span></div>
+    <div class="ep"><span class="m">GET</span><code>/api/v1/services</code><span class="d">live list</span></div>
+    <div class="ep"><span class="m">POST</span><code>/api/v1/keys</code><span class="d">trial key</span></div>
+    <p class="note" style="margin-bottom:18px">`services` chhodo to saari live services chalti hain. `count` max 5.</p>
+    <pre><span class="c"># ek line me</span>
+curl -X POST <span class="s">"https://smsbomberapi.vercel.app/api/v1/bomb"</span> \
+  -H <span class="s">"content-type: application/json"</span> \
+  -d <span class="s">'{"key":"sb_live_xxx","number":"9876543210","count":2}'</span>
+
+<span class="c"># jawab</span>
+{ <span class="s">"ok"</span>: true, <span class="s">"accepted"</span>: 28, <span class="s">"quota"</span>: { <span class="s">"remaining"</span>: 271 } }</pre>
+    <p class="note"><code>accepted</code> ka matlab gateway ne request li. Delivery ki guarantee nahi — koi bhi OTP API ye de hi nahi sakta.</p>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    Arpit ka personal project. Banaya 2026 me. · <a href="https://t.me/arpit" target="_blank" rel="noopener">Telegram</a> · <a href="/dashboard.html">dashboard</a>
   </div>
-
-  <h2 id="pricing">Pricing</h2>
-  <div class="grid">
-    <div class="card">
-      <h4>Trial</h4>
-      <div class="price">Free</div>
-      <ul><li>24 ghante</li><li>20 blasts / din</li><li>Sab services</li></ul>
-      <button data-plan="trial">Le lo</button>
-    </div>
-    <div class="card">
-      <h4>Weekly</h4>
-      <div class="price">₹99 <small>/ 7 din</small></div>
-      <ul><li>7 din validity</li><li>100 blasts / din</li><li>Priority queue</li></ul>
-      <button data-plan="weekly">Kharido</button>
-    </div>
-    <div class="card hi">
-      <h4>Monthly</h4>
-      <div class="price">₹249 <small>/ 30 din</small></div>
-      <ul><li>30 din validity</li><li>300 blasts / din</li><li>Priority queue</li></ul>
-      <button data-plan="monthly">Kharido</button>
-    </div>
-    <div class="card">
-      <h4>Lifetime</h4>
-      <div class="price">₹999 <small>ek baar</small></div>
-      <ul><li>Kabhi expire nahi</li><li>1000 blasts / din</li><li>Priority queue</li></ul>
-      <button data-plan="lifetime">Kharido</button>
-    </div>
-  </div>
-
-  <h2 id="getkey">Key lo</h2>
-  <p class="lead" style="font-size:14px">
-    Trial turant milti hai. Paid plan ke liye request jayegi — payment ke baad admin approve karega.
-  </p>
-  <form id="keyform">
-    <input id="email" type="email" placeholder="tumhara@email.com" required />
-    <select id="plan">
-      <option value="trial">Trial — Free</option>
-      <option value="weekly">Weekly — ₹99</option>
-      <option value="monthly">Monthly — ₹249</option>
-      <option value="lifetime">Lifetime — ₹999</option>
-    </select>
-    <button class="btn p" type="submit">Generate</button>
-  </form>
-  <pre id="out" hidden></pre>
-
-  <h2 id="docs">Docs</h2>
-  <pre><span class="cm"># blast</span>
-<span class="kw">GET</span> /api/v1/bomb?key=YOUR_KEY&number=9876543210&count=1
-
-<span class="cm"># response</span>
-{
-  <span class="str">"ok"</span>: true,
-  <span class="str">"target"</span>: <span class="str">"+919876543210"</span>,
-  <span class="str">"services"</span>: 34,
-  <span class="str">"accepted"</span>: 19,
-  <span class="str">"failed"</span>: 15,
-  <span class="str">"quota"</span>: { <span class="str">"used"</span>: 1, <span class="str">"limit"</span>: 20, <span class="str">"remaining"</span>: 19 }
-}</pre>
-
-  <p class="lead" style="font-size:14px">Parameters:</p>
-  <pre><span class="kw">key</span>       required   api key
-<span class="kw">number</span>    required   10 digit number
-<span class="kw">cc</span>        optional   country code, default 91
-<span class="kw">count</span>     optional   rounds 1-5, default 1
-<span class="kw">services</span>  optional   comma list, default all</pre>
-
-  <p class="lead" style="font-size:14px">Aur endpoints:</p>
-  <pre><span class="kw">GET</span> /api/v1/services   — live service list
-<span class="kw">GET</span> /api/v1/health     — gateway health
-<span class="kw">GET</span> /api/v1/me?key=     — apna quota dekho</pre>
-
-  <footer>SMSBOMB API — endpoints third-party gateways ke hain, unke change hone par list update hoti rehti hai.</footer>
-</div>
+</footer>
 
 <script>
-const out = document.getElementById("out");
-document.getElementById("keyform").onsubmit = async (e) => {
-  e.preventDefault();
-  const email = document.getElementById("email").value.trim();
-  const plan = document.getElementById("plan").value;
-  out.hidden = false;
-  out.textContent = "…";
-  try {
-    const r = await fetch("/api/v1/keys", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ email, plan }),
+const $ = (id) => document.getElementById(id);
+let picked = new Set();
+
+async function loadServices(){
+  try{
+    const r = await fetch('/api/v1/services');
+    const j = await r.json();
+    const box = $('chips');
+    box.innerHTML = '';
+    (j.services || []).forEach(s => {
+      const el = document.createElement('span');
+      el.className = 'chip';
+      el.textContent = s.name;
+      el.dataset.on = '0';
+      if (!s.live) { el.style.opacity = '.35'; el.title = 'abhi down'; }
+      el.onclick = () => {
+        if (picked.has(s.name)) { picked.delete(s.name); el.dataset.on = '0'; }
+        else { picked.add(s.name); el.dataset.on = '1'; }
+        $('svcCount').textContent = picked.size ? `(${picked.size} chuni)` : '';
+      };
+      box.appendChild(el);
     });
-    const d = await r.json();
-    if (d.ok && d.key) {
-      localStorage.setItem("sb_key", d.key);
-      out.textContent = "KEY: " + d.key + "\n\n" + d.note + "\n\nDashboard pe already save ho gayi hai.";
-    } else if (d.ok && d.status === "pending") {
-      out.textContent = "Request bhej di gayi.\nRef: " + d.ref + "\nPlan: " + d.plan + " (₹" + d.price + ")\n\n" + d.note;
-    } else {
-      out.textContent = "Error: " + (d.error || "kuch galat");
-    }
-  } catch (err) {
-    out.textContent = "Network error: " + err.message;
-  }
+  }catch(e){ $('err').textContent = 'services load nahi hui'; }
+}
+
+$('all').onclick = () => document.querySelectorAll('.chip').forEach(c => { c.dataset.on='1'; picked.add(c.textContent); });
+$('none').onclick = () => { picked.clear(); document.querySelectorAll('.chip').forEach(c => c.dataset.on='0'); $('svcCount').textContent=''; };
+
+$('trial').onclick = async () => {
+  const email = prompt('Email daalo (trial key isi pe milegi):');
+  if (!email) return;
+  $('err').textContent = '';
+  const r = await fetch('/api/v1/keys', {
+    method:'POST', headers:{'content-type':'application/json'},
+    body: JSON.stringify({ email, plan:'trial' })
+  });
+  const j = await r.json();
+  if (!j.ok) return $('err').textContent = j.error;
+  $('key').value = j.key;
+  localStorage.setItem('arpit_key', j.key);
+  alert('Key mil gayi. 24 ghante / 20 calls.');
 };
-document.querySelectorAll("[data-plan]").forEach((b) => {
-  b.onclick = () => {
-    document.getElementById("plan").value = b.dataset.plan;
-    document.getElementById("getkey").scrollIntoView({ behavior: "smooth" });
-  };
-});
+
+$('fire').onclick = async () => {
+  $('err').textContent = '';
+  const key = $('key').value.trim();
+  const number = $('num').value.trim();
+  const count = $('count').value;
+  if (!key) return $('err').textContent = 'key chahiye';
+  if (!number) return $('err').textContent = 'number chahiye';
+  localStorage.setItem('arpit_key', key);
+
+  const btn = $('fire');
+  btn.disabled = true; btn.textContent = 'bhej raha hoon...';
+  $('out').style.display = 'none';
+
+  try{
+    const q = new URLSearchParams({ key, number, count });
+    if (picked.size) q.set('services', [...picked].join(','));
+    const r = await fetch('/api/v1/bomb?' + q, { method:'POST' });
+    const j = await r.json();
+    if (!j.ok) { $('err').textContent = j.error; }
+    else {
+      $('out').style.display = 'block';
+      $('outHead').textContent = `${j.accepted} accepted · ${j.failed} fail · ${j.services} services · quota ${j.quota.remaining} bacha`;
+      $('outBody').innerHTML = (j.detail || []).flatMap(rd => rd.results || [])
+        .map(x => `<div class="line"><span>${x.service}</span><span class="${x.ok?'ok':'no'}">${x.ok?'ok':'fail '+x.status}</span></div>`)
+        .join('');
+    }
+  }catch(e){ $('err').textContent = 'network error'; }
+  btn.disabled = false; btn.textContent = 'Bhejo';
+};
+
+$('key').value = localStorage.getItem('arpit_key') || '';
+loadServices();
 </script>
 </body>
-  </html>
+</html>
