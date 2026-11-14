@@ -5,10 +5,12 @@ export default async function handler(req, res) {
   res.setHeader("access-control-allow-origin", "*");
   res.setHeader("content-type", "application/json; charset=utf-8");
   const disabled = await disabledSet();
+  const known = new Set(SERVICES.map((s) => s.name));
+  const dead = [...disabled].filter((n) => known.has(n));
   res.end(JSON.stringify({
     total: SERVICES.length,
-    live: SERVICES.length - disabled.size,
-    disabled: [...disabled],
+    live: SERVICES.length - dead.length,
+    disabled: dead,
     services: SERVICES.map((s) => ({ name: s.name, live: !disabled.has(s.name) })),
   }));
 }
