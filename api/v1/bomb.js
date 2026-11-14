@@ -38,20 +38,28 @@ export default async function handler(req, res) {
   const target = parseTarget(input.number, cc);
   if (!target) return reply(res, 400, { ok: false, error: "valid number chahiye, e.g. ?number=9876543210" });
 
-  const quota = await consume(input.key, auth.rec);
-  if (!quota.ok) return reply(res, 429, { ok: false, error: quota.error, used: quota.used, limit: quota.limit });
+  const rawCount = parseInt(input.count, 10) || 1;
+  const count = Math.min(Math.max(rawCount, 1), 5);
 
-  const count = Math.min(Math.max(parseInt(input.count, 10) || 1, 1), 5);
   const disabled = await disabledSet();
   let picked = SERVICES.filter((s) => !disabled.has(s.name));
 
   if (input.services && input.services !== "all") {
     const want = input.services.split(",").map((x) => x.trim().toLowerCase()).filter(Boolean);
     picked = picked.filter((s) => want.includes(s.name));
-    if (!picked.length) return reply(res, 400, { ok: false, error: "koi service match nahi hui" });
+    if (!picked.length) {
+      return reply(res, 400, {
+        ok: false,
+        error: "koi service match nahi hui",
+        available: SERVICES.map((s) => s.name),
+      });
+    }
   }
-
   if (!picked.length) return reply(res, 503, { ok: false, error: "abhi koi service live nahi, thodi der baad try karo" });
+
+  // quota ab kato — validation ke BAAD. galat request pe quota nahi jalega.
+  const quota = await consume(input.key, auth.rec);
+  if (!quota.ok) return reply(res, 429, { ok: false, error: quota.error, used: quota.used, limit: quota.limit });
 
   const out = await blast({ services: picked, target, count });
 
@@ -61,6 +69,7 @@ export default async function handler(req, res) {
     services: picked.length,
     skippedDisabled: disabled.size,
     rounds: count,
+    countClamped: rawCount !== count,
     requested: picked.length * count,
     accepted: out.accepted,
     failed: out.failed,
