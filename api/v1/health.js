@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     Array.from({ length: limit }, async () => {
       while (cursor < SERVICES.length) {
         const svc = SERVICES[cursor++];
-        const r = await fire(svc, test);
+        const r = await fire(svc, test, "9999999999");
         if (r.ok) await srem("svc:disabled", svc.name).catch(() => {});
         results.push({ service: r.service, ok: r.ok, status: r.status, ms: r.ms });
       }
