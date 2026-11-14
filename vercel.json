@@ -1,0 +1,6 @@
+{
+  "functions": {
+    "api/v1/bomb.js": { "maxDuration": 30 },
+    "api/v1/health.js": { "maxDuration": 30 }
+  }
+}
