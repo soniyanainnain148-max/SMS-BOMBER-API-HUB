@@ -1,5 +1,6 @@
-import { getJSON, scanKeys } from "../../lib/redis.js";
+import { get, getJSON, scanKeys } from "../../lib/redis.js";
 import { mintKey, revoke, DURATIONS } from "../../lib/auth.js";
+import { buildLinks } from "../../lib/links.js";
 
 function reply(res, code, payload) {
   res.statusCode = code;
@@ -17,10 +18,15 @@ export default async function handler(req, res) {
 
   if (req.method === "GET") {
     const names = await scanKeys("key:*");
+    const day = new Date().toISOString().slice(0, 10);
     const keys = [];
     for (const k of names) {
       const r = await getJSON(k);
-      if (r) keys.push({ key: k.slice(4), ...r });
+      if (!r) continue;
+      const id = k.slice(4);
+      const used = Number(await get(`rl:${id}:${day}`)) || 0;
+      const total = Number(await get(`total:${id}`)) || 0;
+      keys.push({ key: id, ...r, used, total, url: buildLinks(req, id, {}).endpoint });
     }
     keys.sort((a, b) => b.createdAt - a.createdAt);
     return reply(res, 200, { ok: true, keys, durations: DURATIONS });
@@ -36,13 +42,20 @@ export default async function handler(req, res) {
     let body = req.body;
     if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
     body = body || {};
-    const plan = String(body.plan || "1d").toLowerCase();
-    if (!DURATIONS[plan]) return reply(res, 400, { ok: false, error: "unknown duration" });
 
-    const { key, rec } = await mintKey({ plan, name: body.name });
+    const { key, rec, term } = await mintKey({
+      plan: body.plan,
+      hours: body.hours,
+      daily: body.daily,
+      name: body.name,
+    });
+
+    const links = buildLinks(req, key, { number: body.number, count: body.count || 1 });
+
     return reply(res, 200, {
-      ok: true, key, name: rec.name, plan,
-      label: DURATIONS[plan].label, expires: rec.expires, daily: rec.daily,
+      ok: true, key, name: rec.name, plan: term.plan, label: term.label,
+      hours: term.hours, daily: term.daily, expires: rec.expires,
+      url: links.url, endpoint: links.endpoint, me: links.me,
     });
   }
 
