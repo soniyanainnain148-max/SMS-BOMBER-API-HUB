@@ -22,7 +22,7 @@
   header .wrap{display:flex;align-items:center;justify-content:space-between;height:58px}
   .brand{font-weight:700;letter-spacing:-.02em;color:var(--accent2);text-shadow:0 0 18px rgba(34,224,255,.5)}
   .brand span{font-size:11px;color:var(--dim);font-weight:400;text-shadow:none}
-  nav{display:flex;gap:16px;font-size:13px}nav a{color:var(--dim)}nav a:hover{color:var(--fg);text-decoration:none}
+  nav{display:flex;gap:14px;font-size:13px;flex-wrap:wrap}nav a{color:var(--dim)}nav a:hover{color:var(--fg);text-decoration:none}
   h1{font-size:clamp(28px,5vw,40px);letter-spacing:-.035em;margin:46px 0 12px;line-height:1.1}
   h1 .soft{color:var(--dim)}
   .lede{color:var(--dim);max-width:58ch;margin:0 0 26px;font-size:15px}.lede b{color:var(--fg);font-weight:500}
@@ -35,9 +35,11 @@
   input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(47,155,255,.18)}
   .row{display:grid;grid-template-columns:1fr 150px 90px;gap:12px;margin-bottom:14px}
   .row2{display:grid;grid-template-columns:1fr 170px;gap:12px;margin-bottom:14px}
-  @media(max-width:620px){.row,.row2{grid-template-columns:1fr}}
+  .row3{display:grid;grid-template-columns:1fr 130px 120px 130px;gap:10px;margin-bottom:14px;align-items:end}
+  @media(max-width:700px){.row,.row2,.row3{grid-template-columns:1fr}}
   button{background:linear-gradient(180deg,var(--accent),#1f7fe0);color:#fff;border:0;border-radius:8px;padding:11px 18px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;box-shadow:0 0 22px rgba(47,155,255,.3)}
   button:disabled{opacity:.5}button.ghost{background:transparent;color:var(--fg);border:1px solid var(--line2);font-weight:500;box-shadow:none}
+  button.red{background:transparent;color:var(--bad);border:1px solid #3d2030;font-weight:500;padding:5px 10px;font-size:11px;box-shadow:none}
   .chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 16px;max-height:110px;overflow:auto}
   .chip{font-size:11px;font-family:'JetBrains Mono',monospace;padding:4px 9px;border:1px solid var(--line2);border-radius:99px;color:var(--dim);cursor:pointer;user-select:none}
   .chip[data-on="1"]{background:rgba(47,155,255,.15);border-color:var(--accent);color:#a9d6ff}
@@ -46,7 +48,7 @@
   .line{display:flex;justify-content:space-between;padding:6px 10px;border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:12px;background:#070d16;margin-bottom:4px}
   .line .ok{color:var(--accent2)}.line .no{color:var(--bad)}
   .keybox{display:none;margin-top:14px;border:1px dashed var(--line2);border-radius:10px;padding:14px;background:#050a12}
-  .keybox .k{font-family:'JetBrains Mono',monospace;font-size:13px;word-break:break-all;color:var(--accent2);text-shadow:0 0 14px rgba(34,224,255,.45)}
+  .keybox .k{font-family:'JetBrains Mono',monospace;font-size:12px;word-break:break-all;color:var(--accent2);text-shadow:0 0 14px rgba(34,224,255,.45)}
   pre{background:#050a12;border:1px solid var(--line);border-radius:10px;padding:16px;overflow:auto;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7;color:#b9cbe0}
   pre .c{color:#4d637d}pre .s{color:var(--accent2)}
   .ep{display:flex;gap:10px;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
@@ -56,26 +58,32 @@
   .ep .d{color:var(--dim);font-size:12px;margin-left:auto;text-align:right}
   .svc{display:flex;justify-content:space-between;font-size:12px;font-family:'JetBrains Mono',monospace;padding:5px 0;border-bottom:1px solid var(--line)}
   .svc .live{color:var(--accent2)}.svc .dead{color:var(--dim)}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{text-align:left;color:var(--dim);font-weight:500;font-size:10px;text-transform:uppercase;letter-spacing:.1em;padding:6px;border-bottom:1px solid var(--line)}
+  td{padding:7px 6px;border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace}
+  td.dim{color:var(--dim)}
   .err{color:var(--bad);font-size:12px;margin-top:10px}
   .note{color:var(--dim);font-size:12px;margin-top:10px}
+  .kv{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
+  .kv:last-child{border-bottom:0}
   footer{padding:36px 0 60px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
 </style>
 </head>
 <body>
 <header><div class="wrap">
   <div class="brand">SMSBomb <span class="mono">/ api hub</span></div>
-  <nav><a href="#key">key</a><a href="#try">try</a><a href="#docs">docs</a><a href="/dashboard.html">dashboard</a></nav>
+  <nav><a href="#key">key</a><a href="#try">try</a><a href="#keys">keys</a><a href="#docs">docs</a><a href="#svc">services</a></nav>
 </div></header>
 
 <main class="wrap">
-  <h1>OTP flood, ek call me.<br><span class="soft">Sab free hai.</span></h1>
-  <p class="lede">Naam daalo, time chuno, key lo. <b>Koi paisa nahi, koi plan nahi.</b> Time khatam hote hi key khud expire ho jati hai.</p>
+  <h1>OTP flood, ek call me.<br><span class="soft">Key ke saath ready URL.</span></h1>
+  <p class="lede">Naam daalo, validity chuno, daily limit set karo — <b>key ke saath poora URL milta hai</b>, browser me seedha kholo.</p>
 
   <section id="key" style="border-top:0;padding-top:0">
     <div class="panel glow">
-      <div class="row2">
-        <div><label>naam</label><input id="name" placeholder="kiske liye hai (optional)" autocomplete="off"></div>
-        <div><label>kitne time ke liye</label>
+      <div class="row3">
+        <div><label>naam</label><input id="name" placeholder="kiske liye (optional)" autocomplete="off"></div>
+        <div><label>validity</label>
           <select id="dur">
             <option value="1h">1 hour</option>
             <option value="1d" selected>1 day</option>
@@ -83,19 +91,34 @@
             <option value="1w">1 week</option>
             <option value="1m">1 month</option>
             <option value="1y">1 year</option>
+            <option value="custom">custom…</option>
           </select>
         </div>
+        <div><label>custom hours</label><input id="hours" placeholder="jaise 6" inputmode="decimal"></div>
+        <div><label>per day limit</label><input id="daily" placeholder="jaise 50" inputmode="numeric"></div>
       </div>
-      <button id="getkey">key banao</button>
+      <div class="row2">
+        <div><label>number (url me daal du)</label><input id="mnum" placeholder="9876543210" inputmode="numeric"></div>
+        <div><label>rounds</label>
+          <select id="mcount"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+        </div>
+      </div>
+      <button id="getkey">key + url banao</button>
       <div class="keybox" id="keybox">
+        <label>key</label>
         <div class="k" id="newkey"></div>
         <div class="note" id="keymeta"></div>
-        <div style="display:flex;gap:8px;margin-top:12px">
-          <button class="ghost" id="copy">copy</button>
+        <label style="margin-top:14px">ready url (browser me seedha)</label>
+        <div class="k" id="newurl"></div>
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <button class="ghost" id="copyurl">url copy</button>
+          <button class="ghost" id="openurl">kholo</button>
+          <button class="ghost" id="copykey">key copy</button>
           <button class="ghost" id="use">test me daalo</button>
         </div>
       </div>
       <div class="err" id="err"></div>
+      <div class="note">custom hours ya per-day limit blank chhodoge to selected validity ka default lagega.</div>
     </div>
   </section>
 
@@ -113,44 +136,70 @@
         <button id="fire">bhejo</button>
         <button class="ghost" id="all">sab</button>
         <button class="ghost" id="none">clear</button>
+        <button class="ghost" id="quota">quota dekho</button>
       </div>
       <div class="out" id="out"><div class="mono" id="outHead" style="font-size:12px;color:var(--dim);margin-bottom:8px"></div><div id="outBody"></div></div>
+      <div id="me" style="margin-top:14px"></div>
+      <div class="err" id="err2"></div>
+    </div>
+  </section>
+
+  <section id="keys">
+    <h2>Admin · keys</h2>
+    <div class="panel">
+      <div class="row2">
+        <div><label>admin secret</label><input id="sec" type="password" placeholder="ADMIN_SECRET" autocomplete="off"></div>
+        <div style="display:flex;gap:8px;align-items:end">
+          <button id="load">load</button>
+          <button class="ghost" id="reset">reset</button>
+        </div>
+      </div>
+      <div id="list" class="note">secret daalo, phir load</div>
+      <div class="err" id="e2"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Admin · health</h2>
+    <div class="panel">
+      <div class="row2">
+        <div><label>test number</label><input id="hnum" value="9876543210" inputmode="numeric"></div>
+        <div><button class="ghost" id="hcheck">check</button></div>
+      </div>
+      <div id="hout" class="mono" style="font-size:12px"></div>
     </div>
   </section>
 
   <section id="docs">
     <h2>Endpoints</h2>
-    <div class="ep"><span class="m">POST</span><code>/api/v1/keys</code><span class="d">{"plan":"1d","name":"arpit"}</span></div>
-    <div class="ep"><span class="m">POST</span><code>/api/v1/bomb</code><span class="d">?key= &amp; number= &amp; count= &amp; services=</span></div>
+    <div class="ep"><span class="m">POST</span><code>/api/v1/keys</code><span class="d">{"plan":"1d","hours":6,"daily":50,"name":"arpit","number":"9876543210"}</span></div>
+    <div class="ep"><span class="m">GET</span><code>/api/v1/bomb</code><span class="d">?key= &amp; number= &amp; count= &amp; services=</span></div>
     <div class="ep"><span class="m">GET</span><code>/api/v1/me</code><span class="d">quota + expiry</span></div>
     <div class="ep"><span class="m">GET</span><code>/api/v1/services</code><span class="d">live list</span></div>
-    <pre style="margin-top:18px"><span class="c"># key banao</span>
+    <pre style="margin-top:18px"><span class="c"># mint — jawab me ready url aata hai</span>
 curl -X POST <span class="s">"https://smsbomberapi.vercel.app/api/v1/keys"</span> \
   -H <span class="s">"content-type: application/json"</span> \
-  -d <span class="s">'{"plan":"1d","name":"arpit"}'</span>
-
-<span class="c"># bhejo</span>
-curl -X POST <span class="s">"https://smsbomberapi.vercel.app/api/v1/bomb"</span> \
-  -H <span class="s">"content-type: application/json"</span> \
-  -d <span class="s">'{"key":"sb_live_xxx","number":"9876543210","count":2}'</span>
+  -d <span class="s">'{"plan":"1d","daily":50,"name":"arpit","number":"9876543210"}'</span>
 
 <span class="c"># jawab</span>
-{ <span class="s">"ok"</span>: true, <span class="s">"accepted"</span>: 28, <span class="s">"quota"</span>: { <span class="s">"remaining"</span>: 71 } }</pre>
-    <p class="note"><code>accepted</code> = gateway ne request li, delivery guarantee nahi. <code>count</code> max 5. Duration: 1h, 1d, 3d, 1w, 1m, 1y.</p>
+{ <span class="s">"ok"</span>: true, <span class="s">"url"</span>: <span class="s">"https://…/api/v1/bomb?key=sb_live_xxx&amp;number=9876543210&amp;count=1"</span> }</pre>
+    <p class="note">Wahi url browser me kholo → result page aayega. <code>accepted</code> = gateway ne request li, delivery guarantee nahi. <code>count</code> max 5. <code>?format=json</code> se raw JSON.</p>
   </section>
 
-  <section>
+  <section id="svc">
     <h2>Services <span class="mono" id="svcTotal" style="color:var(--dim)"></span></h2>
     <div class="panel" id="svclist" style="max-height:340px;overflow:auto"><span class="note">load ho raha...</span></div>
     <p class="note">Dead services khud disable hoti hain aur blast me nahi chalti.</p>
   </section>
 </main>
 
-<footer><div class="wrap">SMSBomb API Hub · <a href="/dashboard.html">dashboard</a></div></footer>
+<footer><div class="wrap">SMSBomb API Hub</div></footer>
 
 <script>
 const $ = (i) => document.getElementById(i);
+const enc = encodeURIComponent;
 let picked = new Set();
+let lastUrl = '';
 
 async function boot(){
   try{
@@ -180,31 +229,47 @@ async function boot(){
 $('all').onclick = () => document.querySelectorAll('.chip').forEach(c => { if (c.dataset.dead==='1') return; c.dataset.on='1'; picked.add(c.textContent); });
 $('none').onclick = () => { picked.clear(); document.querySelectorAll('.chip').forEach(c => c.dataset.on='0'); $('svcCount').textContent=''; };
 
+$('dur').onchange = () => { $('hours').style.opacity = $('dur').value === 'custom' ? 1 : .55; };
+
 $('getkey').onclick = async () => {
   $('err').textContent = '';
-  $('getkey').disabled = true;
-  const r = await fetch('/api/v1/keys', {
-    method:'POST', headers:{'content-type':'application/json'},
-    body: JSON.stringify({ plan: $('dur').value, name: $('name').value.trim() })
-  });
-  const j = await r.json();
-  $('getkey').disabled = false;
-  if (!j.ok) return $('err').textContent = j.error;
-  $('newkey').textContent = j.key;
-  $('keybox').style.display = 'block';
-  const exp = new Date(j.expires);
-  $('keymeta').textContent = `${j.label} ke liye valid · ${j.daily} calls/din · expire: ${exp.toLocaleString()}`;
-  localStorage.setItem('sb_key', j.key);
+  const b = $('getkey'); b.disabled = true;
+  try{
+    const body = {
+      plan: $('dur').value,
+      hours: $('hours').value.trim(),
+      daily: $('daily').value.trim(),
+      name: $('name').value.trim(),
+      number: $('mnum').value.trim(),
+      count: $('mcount').value,
+    };
+    const r = await fetch('/api/v1/keys', {
+      method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body)
+    });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || 'fail');
+
+    $('newkey').textContent = j.key;
+    $('newurl').textContent = j.url;
+    lastUrl = j.url;
+    $('keybox').style.display = 'block';
+    $('keymeta').textContent = `${j.label} · ${j.daily} calls/din · expire: ${new Date(j.expires).toLocaleString()}`;
+    localStorage.setItem('sb_key', j.key);
+    $('keyin').value = j.key;
+  }catch(e){ $('err').textContent = e.message; }
+  b.disabled = false;
 };
 
-$('copy').onclick = () => { navigator.clipboard.writeText($('newkey').textContent); $('keymeta').textContent = 'copy ho gayi.'; };
-$('use').onclick = () => { $('keyin').value = $('newkey').textContent; $('keyin').scrollIntoView({behavior:'smooth',block:'center'}); };
+$('copyurl').onclick = () => { navigator.clipboard.writeText(lastUrl); $('keymeta').textContent = 'url copy ho gaya.'; };
+$('copykey').onclick = () => { navigator.clipboard.writeText($('newkey').textContent); };
+$('openurl').onclick = () => window.open(lastUrl, '_blank');
+$('use').onclick = () => { $('keyin').value = $('newkey').textContent; $('try').scrollIntoView({behavior:'smooth',block:'start'}); };
 
 $('fire').onclick = async () => {
-  $('err').textContent = '';
+  $('err2').textContent = '';
   const key = $('keyin').value.trim(), number = $('num').value.trim(), count = $('count').value;
-  if (!key) return $('err').textContent = 'key chahiye';
-  if (!number) return $('err').textContent = 'number chahiye';
+  if (!key) return $('err2').textContent = 'key chahiye';
+  if (!number) return $('err2').textContent = 'number chahiye';
   localStorage.setItem('sb_key', key);
 
   const b = $('fire'); b.disabled = true; b.textContent = 'bhej raha...';
@@ -214,18 +279,86 @@ $('fire').onclick = async () => {
     if (picked.size) q.set('services', [...picked].join(','));
     const r = await fetch('/api/v1/bomb?' + q, { method:'POST' });
     const j = await r.json();
-    if (!j.ok) $('err').textContent = j.error;
+    if (!j.ok) $('err2').textContent = j.error;
     else {
       $('out').style.display = 'block';
       $('outHead').textContent = `${j.accepted} accepted · ${j.failed} fail · ${j.services} services · quota ${j.quota.remaining} bacha`;
       $('outBody').innerHTML = (j.detail||[]).flatMap(x => x.results||[])
         .map(x => `<div class="line"><span>${x.service}</span><span class="${x.ok?'ok':'no'}">${x.ok?'ok':'fail '+x.status}</span></div>`).join('');
     }
-  }catch(e){ $('err').textContent = 'network error'; }
+  }catch(e){ $('err2').textContent = 'network error'; }
   b.disabled = false; b.textContent = 'bhejo';
 };
 
+const leftTxt = (ts) => {
+  if (!ts) return 'never';
+  const d = ts - Date.now();
+  if (d <= 0) return 'expired';
+  const h = Math.floor(d / 36e5), m = Math.floor(d % 36e5 / 6e4);
+  return h > 24 ? Math.floor(h/24) + 'd' : (h ? h + 'h ' : '') + m + 'm';
+};
+
+$('quota').onclick = async () => {
+  $('err2').textContent = '';
+  const k = $('keyin').value.trim();
+  if (!k) return $('err2').textContent = 'key chahiye';
+  const r = await fetch('/api/v1/me?key=' + enc(k));
+  const j = await r.json();
+  if (!j.ok) return $('err2').textContent = j.error;
+  $('me').innerHTML = `
+    <div class="kv"><span>plan</span><b>${j.plan}</b></div>
+    <div class="kv"><span>bacha</span><b>${leftTxt(j.expires)}</b></div>
+    <div class="kv"><span>aaj</span><b>${j.quota.used} / ${j.quota.limit}</b></div>
+    <div class="kv"><span>total</span><b>${j.quota.total}</b></div>`;
+};
+
+$('load').onclick = async () => {
+  $('e2').textContent = '';
+  const s = $('sec').value.trim();
+  localStorage.setItem('sb_sec', s);
+  const r = await fetch('/api/admin/keys?secret=' + enc(s));
+  const j = await r.json();
+  if (!j.ok) return $('e2').textContent = j.error;
+  if (!j.keys.length) return $('list').textContent = 'koi key nahi';
+  $('list').innerHTML = `<table><tr><th>name</th><th>key</th><th>validity</th><th>bacha</th><th>aaj/limit</th><th>total</th><th></th></tr>
+    ${j.keys.map(k => `<tr>
+      <td>${k.name || '-'}</td>
+      <td class="dim">${k.key}</td>
+      <td>${k.label || k.plan}</td>
+      <td class="${leftTxt(k.expires)==='expired'?'dim':''}">${leftTxt(k.expires)}</td>
+      <td class="dim">${k.used}/${k.daily}</td>
+      <td class="dim">${k.total}</td>
+      <td><button class="red" data-k="${k.key}">kill</button></td></tr>`).join('')}</table>`;
+  $('list').querySelectorAll('button[data-k]').forEach(b => {
+    b.onclick = async () => {
+      if (!confirm('revoke?')) return;
+      await fetch(`/api/admin/keys?secret=${enc(s)}&key=${enc(b.dataset.k)}`, { method:'DELETE' });
+      $('load').click();
+    };
+  });
+};
+
+$('reset').onclick = async () => {
+  const s = $('sec').value.trim();
+  if (!s) return $('e2').textContent = 'secret chahiye';
+  const r = await fetch(`/api/admin/reset?secret=${enc(s)}`);
+  const j = await r.json();
+  $('e2').textContent = j.ok ? `${j.cleared} counters saaf` : (j.error || 'fail');
+};
+
+$('hcheck').onclick = async () => {
+  const s = $('sec').value.trim();
+  if (!s) return $('hout').textContent = 'secret chahiye';
+  $('hout').textContent = 'chal raha...';
+  const r = await fetch(`/api/v1/health?secret=${enc(s)}&number=${enc($('hnum').value.trim())}`);
+  const j = await r.json();
+  $('hout').innerHTML = j.ok
+    ? `<b>${j.passRate}</b> confirmed · ${JSON.stringify(j.summary)}<br><span class="note">${(j.confirmed||[]).join(', ')}</span>`
+    : (j.error || 'fail');
+};
+
 $('keyin').value = localStorage.getItem('sb_key') || '';
+$('sec').value = localStorage.getItem('sb_sec') || '';
 boot();
 </script>
 </body>
