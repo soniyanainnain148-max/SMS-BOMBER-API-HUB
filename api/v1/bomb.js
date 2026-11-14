@@ -53,7 +53,7 @@ export default async function handler(req, res) {
 
   if (!picked.length) return reply(res, 503, { ok: false, error: "abhi koi service live nahi, thodi der baad try karo" });
 
-  const out = await blast({ services: picked, e164: target.e164, count });
+  const out = await blast({ services: picked, target, count });
 
   return reply(res, 200, {
     ok: true,
