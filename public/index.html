@@ -122,7 +122,7 @@ async function boot(){
     (j.services || []).forEach(s => {
       const row = document.createElement('div');
       row.className = 'svc';
-      row.innerHTML = `<span>${s.name}</span><span class="${s.live?'live':'dead'}">${s.live?'live':'down'}</span>`;
+      row.innerHTML = `<span>${s.name}${s.verified?' <b style="color:var(--accent2)">*</b>':''}</span><span class="${s.live?'live':'dead'}">${s.live?'live':'down'}</span>`;
       list.appendChild(row);
     });
     $('svcTotal').textContent = `${j.live}/${j.total} live`;
