@@ -2,6 +2,7 @@ import { SERVICES } from "../../lib/services.js";
 import { authenticate, consume } from "../../lib/auth.js";
 import { disabledSet, parseTarget, blast } from "../../lib/engine.js";
 import { buildLinks } from "../../lib/links.js";
+import { isVerified } from "../../lib/verified.js";
 
 const CORS = {
   "access-control-allow-origin": "*",
@@ -43,16 +44,28 @@ export default async function handler(req, res) {
   const count = Math.min(Math.max(rawCount, 1), 5);
 
   const disabled = await disabledSet();
-  let picked = SERVICES.filter((s) => !disabled.has(s.name));
+  const want = String(input.services || "").trim();
+  let picked;
+  let mode;
 
-  if (input.services && input.services !== "all") {
-    const want = input.services.split(",").map((x) => x.trim().toLowerCase()).filter(Boolean);
-    picked = picked.filter((s) => want.includes(s.name));
+  if (want && want !== "all") {
+    const names = want.split(",").map((x) => x.trim().toLowerCase()).filter(Boolean);
+    picked = SERVICES.filter((s) => names.includes(s.name));
+    mode = "custom";
     if (!picked.length) {
       return reply(res, 400, { ok: false, error: "koi service match nahi hui", available: SERVICES.map((s) => s.name) });
     }
+  } else if (want === "all") {
+    picked = SERVICES.filter((s) => !disabled.has(s.name));
+    mode = "all";
+  } else {
+    picked = SERVICES.filter((s) => isVerified(s.name) && !disabled.has(s.name));
+    mode = "verified";
   }
-  if (!picked.length) return reply(res, 503, { ok: false, error: "abhi koi service live nahi, thodi der baad try karo" });
+
+  if (!picked.length) {
+    return reply(res, 503, { ok: false, error: "abhi koi service live nahi — admin se reset karwao" });
+  }
 
   const quota = await consume(input.key, auth.rec);
   if (!quota.ok) return reply(res, 429, { ok: false, error: quota.error, used: quota.used, limit: quota.limit });
@@ -62,6 +75,7 @@ export default async function handler(req, res) {
   return reply(res, 200, {
     ok: true,
     target: target.e164,
+    mode,
     services: picked.length,
     skippedDisabled: disabled.size,
     rounds: count,
@@ -71,7 +85,7 @@ export default async function handler(req, res) {
     tookMs: out.tookMs,
     quota: { used: quota.used, limit: quota.limit, remaining: Math.max(quota.limit - quota.used, 0) },
     links: buildLinks(req, input.key, { number: target.digits, count }),
-    note: "accepted = gateway ne request li (2xx/3xx). Delivery guarantee nahi.",
+    note: "accepted = OTP ka proof mila. default sirf verified services par chalta hai.",
     detail: out.rounds,
   });
 }
